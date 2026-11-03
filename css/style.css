@@ -2539,3 +2539,306 @@ body.cursor-hover .magnetic-cursor {
   transition: opacity 0.6s ease, transform 0.25s, box-shadow 0.25s;
 }
 .review-card-clean.da-pending { opacity: 0; }
+
+/* ==========================================================================
+   Real Work Media: brand logo, client logos, reels, films, creatives
+   ========================================================================== */
+.brand-logo-img {
+  display: block;
+  height: 44px;
+  width: auto;
+}
+
+.footer-logo-img {
+  display: block;
+  height: 36px;
+  width: auto;
+}
+
+/* Client logo strip */
+.clients-section {
+  padding: 48px 0 36px;
+  overflow: hidden;
+}
+
+.clients-heading {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.clients-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.clients-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeRoll 45s linear infinite;
+}
+
+.clients-marquee:hover .clients-track {
+  animation-play-state: paused;
+}
+
+.clients-row {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+  padding-right: 56px;
+}
+
+.clients-row img {
+  height: 56px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.7;
+  transition: filter var(--ease-smooth), opacity var(--ease-smooth);
+}
+
+.clients-row img:hover {
+  filter: none;
+  opacity: 1;
+}
+
+/* Video work */
+.reels-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.reel-card,
+.film-card {
+  margin: 0;
+}
+
+.reel-frame {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #0f172a;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+.reel-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.reel-sound-btn {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.65);
+  color: #ffffff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reel-card figcaption,
+.film-card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 4px 0;
+}
+
+.reel-card figcaption strong,
+.film-card figcaption strong {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+  color: var(--text-heading);
+}
+
+.reel-card figcaption span,
+.film-card figcaption span {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.films-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.film-card video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  background: #0f172a;
+  display: block;
+  box-shadow: var(--shadow-card);
+}
+
+/* Social media creatives */
+.creatives-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px;
+  margin-top: 40px;
+}
+
+.creative-card {
+  position: relative;
+  padding: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  cursor: zoom-in;
+  text-align: left;
+  transition: transform var(--ease-smooth), box-shadow var(--ease-smooth);
+}
+
+.creative-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.creative-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.creative-label {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px 12px;
+}
+
+.creative-label strong {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  color: var(--text-heading);
+}
+
+.creative-label em {
+  font-style: normal;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.lightbox.open {
+  display: flex;
+}
+
+.lightbox figure {
+  margin: 0;
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+}
+
+.lightbox img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: 14px;
+}
+
+.lightbox figcaption {
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  margin-top: 12px;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* Tools banner image */
+.tools-banner {
+  margin: 0 auto 36px;
+  max-width: 960px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.tools-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 1.4;
+  object-fit: cover;
+}
+
+/* Keyboard focus for new interactive elements */
+.creative-card:focus-visible,
+.reel-sound-btn:focus-visible,
+.lightbox-close:focus-visible,
+.film-card video:focus-visible {
+  outline: 3px solid var(--color-blue);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1024px) {
+  .creatives-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .brand-logo-img { height: 36px; }
+  .reels-row {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 32px -24px 0;
+    padding: 0 24px 8px;
+  }
+  .reel-card { flex: 0 0 62%; scroll-snap-align: center; }
+  .films-grid { grid-template-columns: 1fr; gap: 20px; margin-top: 36px; }
+  .creatives-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .clients-row { gap: 36px; padding-right: 36px; }
+  .clients-row img { height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clients-track { animation: none; }
+}

@@ -23,7 +23,105 @@ document.addEventListener('DOMContentLoaded', () => {
   initAuditContactForm();
   initMobileNavigation();
   initFloatingDock();
+  initWorkVideos();
+  initPosterLightbox();
 });
+
+/* ==========================================================================
+   Video work: load videos only near the viewport; reels autoplay muted
+   ========================================================================== */
+function initWorkVideos() {
+  const videos = document.querySelectorAll('video.lazy-video');
+  if (!videos.length) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isReel = (v) => !!v.closest('.reel-card');
+
+  const load = (v) => {
+    if (v.src) return;
+    // "#t=0.5" makes the browser show a real frame as the thumbnail.
+    v.src = v.dataset.src + '#t=0.5';
+    v.preload = 'metadata';
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(({ target: v, isIntersecting, intersectionRatio }) => {
+      if (isIntersecting) load(v);
+      if (!isReel(v) || reduceMotion) return;
+      if (isIntersecting && intersectionRatio >= 0.5) {
+        v.play().catch(() => {});
+      } else if (!v.paused) {
+        v.pause();
+      }
+    });
+  }, { rootMargin: '300px 0px', threshold: [0, 0.5] });
+
+  videos.forEach((v) => observer.observe(v));
+
+  // Tap a reel (or its button) to toggle sound; only one reel plays sound at a time.
+  document.querySelectorAll('.reel-frame').forEach((frame) => {
+    const video = frame.querySelector('video');
+    const btn = frame.querySelector('.reel-sound-btn');
+    frame.addEventListener('click', () => {
+      load(video);
+      const turnOn = video.muted;
+      document.querySelectorAll('.reel-frame video').forEach((other) => {
+        if (other !== video) {
+          other.muted = true;
+          other.closest('.reel-frame').querySelector('.reel-sound-btn i').className = 'fa-solid fa-volume-xmark';
+        }
+      });
+      video.muted = !turnOn;
+      if (turnOn) video.play().catch(() => {});
+      btn.querySelector('i').className = turnOn ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+      btn.setAttribute('aria-label', turnOn ? 'Turn sound off' : 'Turn sound on');
+    });
+  });
+
+  // Landscape films: pause the others when one starts playing.
+  document.querySelectorAll('.film-card video').forEach((film) => {
+    film.addEventListener('play', () => {
+      document.querySelectorAll('.film-card video').forEach((o) => { if (o !== film) o.pause(); });
+    });
+  });
+}
+
+/* ==========================================================================
+   Poster lightbox for social media creatives
+   ========================================================================== */
+function initPosterLightbox() {
+  const box = document.getElementById('posterLightbox');
+  if (!box) return;
+  const img = document.getElementById('lightboxImg');
+  const caption = document.getElementById('lightboxCaption');
+  let lastFocus = null;
+
+  const close = () => {
+    box.classList.remove('open');
+    img.src = '';
+    window.lenisInstance?.start();
+    lastFocus?.focus();
+  };
+
+  document.querySelectorAll('.creative-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      lastFocus = card;
+      img.src = card.dataset.full;
+      img.alt = card.querySelector('img').alt;
+      caption.textContent = card.dataset.caption || '';
+      box.classList.add('open');
+      window.lenisInstance?.stop();
+      box.querySelector('.lightbox-close').focus();
+    });
+  });
+
+  box.addEventListener('click', (e) => {
+    if (e.target === box || e.target.closest('.lightbox-close')) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && box.classList.contains('open')) close();
+  });
+}
 
 /* ==========================================================================
    0. Pinned (sticky) sections: scale content to the viewport height
