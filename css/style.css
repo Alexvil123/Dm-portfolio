@@ -2171,6 +2171,51 @@ select.input-clean option { color: var(--text-heading, #0f172a); }
 
 .form-success-box.show {
   display: block;
+  animation: auditSuccessReveal .45s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.form-success-box.show .fsb-icon {
+  animation: auditCheckPop .65s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.form-success-box.show .fsb-icon i {
+  animation: auditTickReveal .3s .2s ease-out both;
+}
+#btnSubmitContact.is-submitting { position: relative; overflow: hidden; opacity: .95; }
+#btnSubmitContact.is-submitting > i {
+  width: 17px; height: 17px; flex-shrink: 0; font-size: 0;
+  border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+  border-radius: 50%; animation: auditSpinner .75s linear infinite;
+}
+#btnSubmitContact.is-submitting > i::before { content: none; }
+.audit-save-progress {
+  display: none; height: 4px; overflow: hidden; border-radius: 4px;
+  background: #dbeafe; margin-bottom: 12px;
+}
+.clean-form.is-submitting .audit-save-progress { display: block; }
+.audit-save-progress span {
+  display: block; height: 100%; width: 40%; border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #10b981);
+  animation: auditSaving 1.25s ease-in-out infinite;
+}
+@keyframes auditSpinner { to { transform: rotate(360deg); } }
+@keyframes auditSaving { from { transform: translateX(-100%); } to { transform: translateX(350%); } }
+@keyframes auditSuccessReveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes auditCheckPop {
+  0% { opacity: 0; transform: scale(.5); box-shadow: 0 0 0 0 rgba(5,150,105,.2); }
+  65% { opacity: 1; transform: scale(1.12); }
+  100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 18px rgba(5,150,105,0); }
+}
+@keyframes auditTickReveal {
+  from { opacity: 0; transform: scale(.3) rotate(-25deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .form-success-box.show, .form-success-box.show .fsb-icon,
+  .form-success-box.show .fsb-icon i, #btnSubmitContact.is-submitting > i,
+  .audit-save-progress span { animation: none; }
 }
 
 .fsb-icon {

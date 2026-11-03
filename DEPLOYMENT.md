@@ -17,4 +17,6 @@ The per-IP request limiter is best effort per function instance; it is not a dur
 
 If Google's save confirmation times out, the API retries once with the identical request ID and payload. Apps Script acknowledges the existing row on retry. The API allows two 25-second attempts within its 60-second function limit; the browser waits up to 58 seconds and changes its button to “Confirming your request…” after 12 seconds. Success still requires Google's matching receipt. Diagnostic logs contain only request ID, attempt and a fixed error category, never enquiry fields or the secret.
 
+Submitting shows an animated spinner and indeterminate progress bar, then a check reveal and confetti only after acknowledgement. Fields are locked during submission and restored on failure. Reduced-motion settings suppress the effects, and a failed confetti renderer cannot change a successful save into an error.
+
 Local checks: `npm test` and `npm run build` on Node 24. For local preview, use `npm start`; the local server reads `.audit-config.json` without bundling it.

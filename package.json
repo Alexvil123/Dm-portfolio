@@ -6,6 +6,6 @@
   "scripts": {
     "start": "node server.js",
     "build": "node scripts/build-public.cjs",
-    "test": "node --test --test-isolation=none tests/audit-form.test.cjs"
+    "test": "node --test --test-isolation=none tests/audit-form.test.cjs tests/audit-form-ui.test.cjs"
   }
 }

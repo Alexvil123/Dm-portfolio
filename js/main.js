@@ -1452,6 +1452,10 @@ function initAuditContactForm() {
     }
     pending = true;
     submitBtn.disabled = true;
+    submitBtn.classList.add('is-submitting');
+    form.classList.add('is-submitting');
+    const editingFields = [...form.querySelectorAll('input, select')];
+    editingFields.forEach(field => { field.disabled = true; });
     form.setAttribute('aria-busy', 'true');
     submitLabel.textContent = 'Saving your request…';
     errorBox.hidden = true;
@@ -1472,20 +1476,24 @@ function initAuditContactForm() {
         throw new Error(result.message || 'Your request could not be saved. Please try again.');
       }
 
-    // Trigger Canvas Confetti with Royal Blue & Growth Emerald palette
-    if (typeof window.confetti === 'function') {
-      window.confetti({
-        particleCount: 110,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#2563eb', '#3b82f6', '#059669', '#10b981', '#4f46e5'],
-      });
-    }
-
-    form.style.display = 'none';
-    celebrateBox.classList.add('show');
-    celebrateBox.focus({ preventScroll: true });
-    retryRequest = null;
+      form.style.display = 'none';
+      celebrateBox.classList.add('show');
+      celebrateBox.focus({ preventScroll: true });
+      retryRequest = null;
+      // Celebrate a confirmed save. Keep it local to the success card.
+      if (typeof window.confetti === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        try {
+          const card = celebrateBox.getBoundingClientRect();
+          window.confetti({
+            particleCount: 100, spread: 85, startVelocity: 32, ticks: 180,
+            origin: {
+              x: Math.max(.1, Math.min(.9, (card.left + card.width / 2) / window.innerWidth)),
+              y: Math.max(.15, Math.min(.85, (card.top + 40) / window.innerHeight)),
+            },
+            colors: ['#2563eb', '#3b82f6', '#059669', '#10b981', '#4f46e5'],
+          });
+        } catch { /* A decorative effect must not turn a saved request into an error. */ }
+      }
     } catch (error) {
       errorBox.textContent = error.name === 'AbortError'
         ? 'We could not confirm the save in time. Please retry; your details are still here.'
@@ -1498,6 +1506,9 @@ function initAuditContactForm() {
       clearTimeout(confirmationHint);
       pending = false;
       submitBtn.disabled = false;
+      submitBtn.classList.remove('is-submitting');
+      form.classList.remove('is-submitting');
+      editingFields.forEach(field => { field.disabled = false; });
       form.removeAttribute('aria-busy');
       submitLabel.textContent = 'Request My Free Audit';
     }
