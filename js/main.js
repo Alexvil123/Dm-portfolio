@@ -1456,7 +1456,11 @@ function initAuditContactForm() {
     submitLabel.textContent = 'Saving your request…';
     errorBox.hidden = true;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    // Allow the API's idempotent confirmation retry to finish before aborting.
+    const timeout = setTimeout(() => controller.abort(), 58000);
+    const confirmationHint = setTimeout(() => {
+      submitLabel.textContent = 'Confirming your request…';
+    }, 12000);
     try {
       const response = await fetch('/api/audit', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1491,6 +1495,7 @@ function initAuditContactForm() {
       errorBox.hidden = false;
     } finally {
       clearTimeout(timeout);
+      clearTimeout(confirmationHint);
       pending = false;
       submitBtn.disabled = false;
       form.removeAttribute('aria-busy');

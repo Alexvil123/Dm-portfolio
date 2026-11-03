@@ -8,7 +8,7 @@ const valid = { name: 'Test Lead', business: 'Test Business', email: 'test@examp
 const settings = { url: 'https://script.google.com/macros/s/test-deployment/exec', secret: 'test-only-secret' };
 
 async function fixture(t, options = {}) {
-  const handler = createAuditHandler({ getConfig: () => settings, ...options });
+  const handler = createAuditHandler({ getConfig: () => settings, logger: { warn() {} }, ...options });
   const server = http.createServer(async (req, res) => {
     if (options.parsedBody) {
       let raw = '';
@@ -56,6 +56,41 @@ test('Vercel parsed object and string bodies both save through the same API', as
     } });
     assert.equal((await post(valid)).status, 200);
   }
+});
+test('a lost response after saving retries the same ID and receives the existing receipt', async t => {
+  const rows = new Map();
+  const bodies = [];
+  const diagnostics = [];
+  const post = await fixture(t, {
+    logger: { warn: (...args) => diagnostics.push(args) },
+    fetchImpl: async (url, options) => {
+      bodies.push(options.body);
+      const request = JSON.parse(options.body);
+      if (!rows.has(request.requestId)) rows.set(request.requestId, request);
+      if (bodies.length === 1) throw new DOMException('Save completed but receipt was delayed', 'TimeoutError');
+      return { ok: true, json: async () => ({ ok: true, requestId: request.requestId }) };
+    },
+  });
+  const response = await post(valid);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).requestId, valid.requestId);
+  assert.equal(bodies.length, 2);
+  assert.equal(bodies[0], bodies[1]);
+  assert.equal(rows.size, 1);
+  assert.equal(diagnostics[0][1].reason, 'timeout');
+  assert.equal(JSON.stringify(diagnostics).includes(valid.email), false);
+  assert.equal(JSON.stringify(diagnostics).includes(settings.secret), false);
+});
+test('a failed confirmation retry stays an error instead of claiming success', async t => {
+  let attempts = 0;
+  const post = await fixture(t, { fetchImpl: async () => {
+    attempts++;
+    throw new DOMException('Timeout', 'TimeoutError');
+  } });
+  const result = await post(valid);
+  assert.equal(result.status, 502);
+  assert.equal((await result.json()).ok, false);
+  assert.equal(attempts, 2);
 });
 test('validation, spam trap and foreign origins are rejected before Google', async t => {
   const post = await fixture(t, { fetchImpl: () => assert.fail('must not forward') });
