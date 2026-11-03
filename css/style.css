@@ -1069,7 +1069,7 @@ body.cursor-hover .magnetic-cursor {
 
 .services-card-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   position: relative;
   z-index: 1;
@@ -1422,6 +1422,11 @@ body.cursor-hover .magnetic-cursor {
   z-index: 4;
 }
 
+/* Breathing room between the services deck and the case-study showcase. */
+.services-section + .portfolio-section {
+  margin-top: clamp(64px, 6vw, 112px);
+}
+
 .portfolio-scroll-track {
   position: relative;
   height: 250vh; /* Smooth, generous scroll distance for gliding along the rainbow */
@@ -1572,6 +1577,9 @@ body.cursor-hover .magnetic-cursor {
   align-items: center;
   justify-content: center;
   transform-style: preserve-3d;
+  /* The track sits in front of the pushed-back cards in 3D space, so let
+     clicks pass through it to the cards and their buttons. */
+  pointer-events: none;
 }
 
 /* Cards in the Rainbow Track */
@@ -1579,10 +1587,11 @@ body.cursor-hover .magnetic-cursor {
   position: absolute;
   top: 15px;
   left: 50%;
-  width: 375px;
-  margin-left: -187.5px;
+  width: calc(375px * var(--card-zoom)); /* laid out at the centre card's full size */
+  margin-left: calc(-187.5px * var(--card-zoom));
+  --card-zoom: 1.14;
   transform-origin: center center;
-  max-width: 88vw;
+  max-width: calc(88vw * var(--card-zoom));
   background: #ffffff;
   border: 1px solid var(--border-card);
   border-radius: 22px;
@@ -1591,8 +1600,9 @@ body.cursor-hover .magnetic-cursor {
   flex-direction: column;
   box-shadow: var(--shadow-card);
   cursor: pointer;
-  transform-style: preserve-3d;
-  will-change: transform, filter, opacity, box-shadow;
+  pointer-events: auto;
+  transform-style: flat;
+  /* no will-change: it freezes the text as a scaled picture, which looks soft */
   transition: box-shadow 0.35s ease, border-color 0.35s ease, filter 0.15s ease;
   user-select: none;
 }
@@ -1758,6 +1768,22 @@ body.cursor-hover .magnetic-cursor {
   gap: 14px;
 }
 
+/* 8 options: tighter rows on desktop so the whole card fits on screen */
+@media (min-width: 769px) {
+  .calc-card-clean { padding: 36px 44px; }
+  .cgc-desc { margin-bottom: 18px; }
+  .service-checkboxes { gap: 8px; }
+  .service-checkboxes .check-box-clean { padding: 10px 18px; }
+  .service-checkboxes .cbc-text strong { font-size: 0.92rem; }
+
+  /* Package summary follows you down the list, stopping at its end */
+  .calc-grid-clean { align-items: start; }
+  .cgc-right {
+    position: sticky;
+    top: 120px; /* just under the floating menu */
+  }
+}
+
 .check-box-clean {
   display: flex;
   align-items: center;
@@ -1803,6 +1829,7 @@ body.cursor-hover .magnetic-cursor {
 }
 
 .cbc-pill {
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   padding: 4px 10px;
@@ -2094,6 +2121,19 @@ body.cursor-hover .magnetic-cursor {
   margin-bottom: 18px;
 }
 
+/* Two fields side by side, stacking on phones */
+.form-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+@media (max-width: 560px) {
+  .form-pair { grid-template-columns: 1fr; }
+}
+
+select.input-clean:invalid { color: var(--text-muted, #94a3b8); }
+select.input-clean option { color: var(--text-heading, #0f172a); }
+
 .form-row-group label {
   display: block;
   font-family: var(--font-heading);
@@ -2118,6 +2158,10 @@ body.cursor-hover .magnetic-cursor {
   border-color: var(--color-blue);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
+
+.audit-honeypot { display: none; }
+.form-error { margin: 0 0 16px; color: #b91c1c; font-size: .9rem; line-height: 1.5; }
+#btnSubmitContact:disabled { opacity: .65; cursor: wait; }
 
 .form-success-box {
   display: none;
@@ -2391,8 +2435,8 @@ body.cursor-hover .magnetic-cursor {
     grid-template-columns: 1fr;
   }
   .portfolio-rainbow-track .work-card-clean {
-    width: 310px;
-    margin-left: -155px;
+    width: calc(310px * var(--card-zoom));
+    margin-left: calc(-155px * var(--card-zoom));
   }
   .portfolio-rainbow-stage {
     height: 480px;
@@ -2571,6 +2615,7 @@ body.cursor-hover .magnetic-cursor {
   .services-deck-container .section-main-title { font-size: clamp(2rem, 3.2vw, 2.6rem); margin-bottom: 8px; }
   .services-deck-container .section-sub-title { max-width: 780px; }
   .services-card-grid { gap: 16px; }
+  .services-deck-container { max-width: 1480px; }
   .service-card-clean .card-face-front { padding: 20px 22px; }
   .sc-icon { width: 42px; height: 42px; font-size: 1.1rem; margin-bottom: 14px; }
   .sc-title { font-size: 1.15rem; margin-bottom: 8px; }
@@ -2609,9 +2654,27 @@ body.cursor-hover .magnetic-cursor {
 
 /* Client logo strip */
 .clients-section {
-  padding: 48px 0 36px;
-  overflow: hidden;
+  padding: 0;
+  position: relative;
 }
+
+.clients-section > .container {
+  max-width: none;
+  padding: 0 12px;
+}
+
+.clients-panel {
+  padding: 24px 0 14px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 40px;
+  box-shadow: 0 12px 32px -18px rgba(15, 23, 42, 0.18);
+}
+
+/* Even spacing around the band: same gap above and below */
+.hero-section { padding-bottom: 56px; }
+#split-slider { padding-top: 56px; }
 
 .clients-heading {
   text-align: center;
@@ -2621,14 +2684,14 @@ body.cursor-hover .magnetic-cursor {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
 .clients-marquee {
   overflow: hidden;
-  padding: 18px 0;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  padding: 14px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
 }
 
 .clients-track {
@@ -2640,14 +2703,16 @@ body.cursor-hover .magnetic-cursor {
 .clients-row {
   display: flex;
   align-items: center;
-  gap: 56px;
-  padding-right: 56px;
+  gap: 48px;
+  padding-right: 48px;
 }
 
+/* Each logo carries its own --h (set in index.html) so they look equally
+   big: wide wordmarks are shorter, compact or thin logos are taller. */
 .clients-row img {
-  height: 56px;
+  height: calc(var(--h, 56) * 1px);
   width: auto;
-  max-width: 180px;
+  max-width: 220px;
   object-fit: contain;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -2884,9 +2949,87 @@ body.cursor-hover .magnetic-cursor {
   .films-grid { grid-template-columns: 1fr; gap: 20px; margin-top: 36px; }
   .creatives-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .clients-row { gap: 36px; padding-right: 36px; }
-  .clients-row img { height: 44px; }
+  .clients-row img { height: calc(var(--h, 56) * 0.78px); }
+  .clients-panel { padding-top: 20px; }
+  .clients-heading { padding: 0 16px; font-size: 0.72rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .clients-track { animation: none; }
+}
+
+/* Carousel card contents are laid out --card-zoom times larger (sharp text at
+   the centre card's size); main.js wraps them in .wcc-zoom and scales side
+   cards down from this size. */
+.portfolio-rainbow-track .wcc-zoom {
+  zoom: var(--card-zoom);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive corrections: retain the desktop card and marquee animations. */
+.work-modal-metrics > *, .work-modal-story > * { min-width: 0; }
+.modal-window-clean { overscroll-behavior: contain; overflow-wrap: anywhere; }
+.direct-link-btn { min-width: 0; }
+.direct-link-btn i { flex-shrink: 0; }
+.direct-link-btn span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .nav-links { max-height: calc(100dvh - 100px); overflow-y: auto; }
+}
+@media (max-width: 768px) {
+  .deck-state-indicator { display: none; }
+  /* Keep the shortcuts available without covering form fields or cards. */
+  .floating-dock-clean {
+    position: relative; inset: auto; flex-direction: row;
+    justify-content: center; padding: 18px 18px max(18px, env(safe-area-inset-bottom));
+    background: #fff; z-index: 2;
+  }
+  .direct-link-btn { overflow-wrap: anywhere; }
+  .fcr-brand { flex-wrap: wrap; min-width: 0; }
+  .fcr-brand p { min-width: 0; }
+  .input-clean, .select-clean { font-size: 16px; min-width: 0; }
+  .modal-backdrop-clean { padding: 12px; }
+  .modal-window-clean { padding: 54px 20px 24px; max-height: calc(100dvh - 24px); }
+  .work-modal-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .work-modal-story { grid-template-columns: minmax(0, 1fr) !important; }
+  .work-modal-image { height: 220px !important; }
+  #workModalBody .btn-primary-blue { white-space: normal; text-align: center; }
+}
+@media (max-width: 380px) {
+  .navbar { gap: 8px; padding-inline: 10px; }
+  .brand-logo-link { min-width: 0; flex: 1; }
+  .brand-logo-img { width: 100%; max-width: 125px; height: auto; }
+  .nav-actions { gap: 8px; }
+  .nav-actions .btn-sm { padding-inline: 12px; }
+  .contact-card-clean { padding-inline: 16px; }
+  .clean-form { padding-inline: 14px; }
+}
+@media (max-width: 480px) {
+  .reels-row { margin-inline: -18px; padding-inline: 18px; }
+}
+@media (max-width: 1100px), (max-height: 600px) {
+  .services-scroll-track { height: auto !important; }
+  .services-sticky-viewport { position: static !important; height: auto !important; padding: 60px 0 !important; }
+  .services-deck-container { height: auto; max-height: none; }
+  .services-deck-stage { margin-top: 8px; }
+  .services-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .deck-state-indicator { display: none; }
+}
+@media (max-width: 600px) {
+  .services-card-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-height: 600px) {
+  .portfolio-scroll-track { height: auto; }
+  .portfolio-sticky-viewport { position: relative; top: auto; height: auto; padding-block: 32px; }
+  .portfolio-rainbow-container { height: auto; max-height: none; }
+  .portfolio-rainbow-stage { height: 650px; flex-shrink: 0; }
+}
+@media (max-height: 600px) and (max-width: 768px) {
+  .portfolio-rainbow-stage { height: 560px; }
+}
+@media (min-width: 769px) and (max-width: 1100px) {
+  .floating-dock-clean {
+    position: relative; inset: auto; flex-direction: row;
+    justify-content: center; padding: 18px; background: #fff; z-index: 2;
+  }
 }

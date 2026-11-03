@@ -1,9 +1,11 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { createAuditHandler } = require('./lib/audit-form');
 
 const PORT = Number(process.env.PORT || process.argv[2]) || 5050;
 const ROOT = path.resolve(__dirname);
+const handleAudit = createAuditHandler({ root: ROOT });
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -29,10 +31,19 @@ const NO_CACHE = {
 
 const server = http.createServer((req, res) => {
   let reqPath = req.url.split('?')[0];
+  if (reqPath === '/api/audit') return handleAudit(req, res);
+  try { reqPath = decodeURIComponent(reqPath); }
+  catch { res.writeHead(400); return res.end('400 Bad Request'); }
+  // Source, configuration, tests and backups are not public website assets.
+  if (reqPath.split(/[\\/]/).some(part => part.startsWith('.')) ||
+      /^\/(?:audit|audit-private|lib|tests|integrations)(?:\/|$)/i.test(reqPath) ||
+      /^\/(?:server\.js|README\.md)$/i.test(reqPath)) {
+    res.writeHead(404); return res.end('404 Not Found');
+  }
   if (reqPath === '/') reqPath = '/index.html';
 
-  const filePath = path.join(ROOT, decodeURIComponent(reqPath));
-  if (!filePath.startsWith(ROOT)) {
+  const filePath = path.resolve(ROOT, '.' + reqPath);
+  if (!filePath.startsWith(ROOT + path.sep)) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     return res.end('403 Forbidden');
   }

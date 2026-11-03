@@ -1,0 +1,11 @@
+.git
+.claude
+.audit-config.json
+.env*
+audit
+audit-private
+node_modules
+dist
+tests
+integrations
+assets/img

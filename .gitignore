@@ -2,6 +2,14 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+.audit-config.json
+audit-private/
+audit/
+.claude/
+.vercel/
+dist/
+.env
+.env.*
 
 # Original full-size videos (web versions live in assets/video/)
 assets/img/*.mp4

@@ -10,15 +10,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollProgressBar();
   initScrollRevealObserver();
   initSplitComparisonSlider();
+  initRainbowPortfolioCarousel(); // before initStickyFit: it wraps the card contents that fit measures
   initStickyFit();
   initDotAssembleReviews();
   initServicesDeckFlipAnimation();
   initMagneticCursorAndPulls();
   init3DTiltAndGlare();
   initAnimatedCounters();
-  initRainbowPortfolioCarousel();
   initInteractiveScopeEstimator();
-  initEstimatorStandUp();
   initCaseStudyModal();
   initAuditContactForm();
   initMobileNavigation();
@@ -232,11 +231,13 @@ function initStickyFit() {
       container: containerOf('.portfolio-rainbow-container'),
       stage: containerOf('.portfolio-rainbow-stage'),
       desktopOnly: false,
-      // Active card is absolutely positioned (top: 15px) and pops up to 1.14x
+      useZoom: true,
+      // Cards are absolutely positioned (top: 15px) and already laid out at
+      // the centre card's full size, which is never scaled up.
       bottom: (container, stage, top) => {
         const cards = stage.querySelectorAll('.work-card-clean');
         const tallest = Array.from(cards).reduce((m, c) => Math.max(m, c.offsetHeight), 0);
-        return Math.max(top + stage.offsetHeight, top + 15 + tallest * 1.07);
+        return Math.max(top + stage.offsetHeight, top + 15 + tallest);
       },
     },
   ].filter((t) => t.container && t.stage);
@@ -246,7 +247,7 @@ function initStickyFit() {
   function fit() {
     targets.forEach((t) => {
       const { container, stage } = t;
-      if (t.desktopOnly && window.innerWidth <= 768) {
+      if ((t.desktopOnly && window.innerWidth <= 1100) || window.innerHeight <= 600) {
         container.style.transform = '';
         container.style.zoom = '';
         return;
@@ -256,18 +257,39 @@ function initStickyFit() {
       container.style.zoom = '';
       const top = stage.getBoundingClientRect().top - container.getBoundingClientRect().top;
       const natural = t.bottom(container, stage, top) + 16;
-      const available = container.clientHeight - 8; // keep a small gap under the navbar
+      // Room actually visible: the container can start below the top of its
+      // sticky viewport (padding for the menu) and run past the screen bottom.
+      const cRect = container.getBoundingClientRect();
+      const pRect = container.parentElement.getBoundingClientRect();
+      const visible = Math.min(container.clientHeight, pRect.bottom - cRect.top);
+      const available = visible - 8; // keep a small gap under the navbar
       if (!natural || available <= 0) return;
 
       const scale = Math.max(0.55, Math.min(1, available / natural));
       const offsetY = Math.round(8 + Math.max(0, (available - natural * scale) / 2));
 
       if (t.useZoom) {
+        // Some text is sized in vw, which zoom does not shrink, so the zoomed
+        // layout can come out taller than predicted. Re-measure after zooming
+        // and correct, a few times at most.
+        let z = scale;
+        let visualNatural = natural;
+        for (let i = 0; i < 3 && z < 0.999; i++) {
+          container.style.zoom = z.toFixed(3);
+          const vTop = stage.getBoundingClientRect().top - container.getBoundingClientRect().top;
+          visualNatural = (t.bottom(container, stage, vTop / z) + 16) * z;
+          if (visualNatural <= available + 1) break;
+          z = Math.max(0.55, z * available / visualNatural);
+        }
+        const zoomed = z < 0.999;
+        container.style.zoom = zoomed ? z.toFixed(3) : '';
+        // A smaller (zoomed) container gets re-centred by its parent and drops
+        // lower; measure that drop and move it back up to the unzoomed top.
+        const drop = container.getBoundingClientRect().top - cRect.top;
         // Lengths inside a zoomed element are multiplied by the zoom, so the
         // offset is divided by it to land on the same on-screen position.
-        const zoomed = scale < 0.999;
-        container.style.zoom = zoomed ? scale.toFixed(3) : '';
-        container.style.transform = `translateY(${(offsetY / (zoomed ? scale : 1)).toFixed(2)}px)`;
+        const offY = Math.round(8 + Math.max(0, (available - visualNatural) / 2) - drop);
+        container.style.transform = `translateY(${(offY / (zoomed ? z : 1)).toFixed(2)}px)`;
         return;
       }
 
@@ -861,6 +883,18 @@ function initRainbowPortfolioCarousel() {
   if (!track || !cards.length) return;
 
   const totalCards = cards.length;
+  // Card contents are laid out CARD_ZOOM times larger (the centre card's size)
+  // inside a .wcc-zoom wrapper, so the centre card needs no scaling and its
+  // text is sharp. The zoom sits on the wrapper, not the card, because zoom
+  // and 3D transforms on the same element are drawn out of place.
+  const CARD_ZOOM = parseFloat(getComputedStyle(cards[0]).getPropertyValue('--card-zoom')) || 1;
+  cards.forEach((card) => {
+    if (card.querySelector(':scope > .wcc-zoom')) return;
+    const inner = document.createElement('div');
+    inner.className = 'wcc-zoom';
+    while (card.firstChild) inner.appendChild(card.firstChild);
+    card.appendChild(inner);
+  });
   let activeIndex = 0;
   let currentFloatIndex = 0;
 
@@ -894,8 +928,14 @@ function initRainbowPortfolioCarousel() {
   }
 
   // Smooth scroll to target card index
-  function scrollToIndex(index) {
+  function scrollToIndex(index, duration = 1.15) {
     const clampedIndex = clamp(index, 0, totalCards - 1);
+    if (window.innerHeight <= 600) {
+      activeIndex = clampedIndex;
+      updateDots(activeIndex);
+      updateRainbowFrame();
+      return;
+    }
     const rect = track.getBoundingClientRect();
     const trackTop = window.scrollY + rect.top;
     const scrollDistance = track.offsetHeight - window.innerHeight;
@@ -907,10 +947,27 @@ function initRainbowPortfolioCarousel() {
     const destY = trackTop + targetProgress * scrollDistance;
 
     if (window.lenisInstance) {
-      window.lenisInstance.scrollTo(destY, { duration: 1.15 });
+      window.lenisInstance.scrollTo(destY, { duration });
     } else {
       window.scrollTo({ top: destY, behavior: 'smooth' });
     }
+  }
+
+  // When scrolling stops between two cards, glide to the nearest one so a
+  // card is always fully centred (sharp, and its button easy to click).
+  let snapTimer = 0;
+  function scheduleSnap() {
+    clearTimeout(snapTimer);
+    if (window.innerHeight <= 600) return;
+    snapTimer = setTimeout(() => {
+      const rect = track.getBoundingClientRect();
+      const scrollDistance = track.offsetHeight - window.innerHeight;
+      if (scrollDistance <= 0) return;
+      const progress = -rect.top / scrollDistance;
+      if (progress <= 0.001 || progress >= 0.999) return; // outside the pinned section
+      const nearest = Math.round(currentFloatIndex);
+      if (Math.abs(currentFloatIndex - nearest) > 0.004) scrollToIndex(nearest, 0.5);
+    }, 160);
   }
 
   // Update dots indicator & arrow states
@@ -944,7 +1001,7 @@ function initRainbowPortfolioCarousel() {
       progress = clamp(rawProgress, 0, 1);
     }
 
-    currentFloatIndex = progress * (totalCards - 1);
+    currentFloatIndex = window.innerHeight <= 600 ? activeIndex : progress * (totalCards - 1);
     const roundedIdx = clamp(Math.round(currentFloatIndex), 0, totalCards - 1);
     if (roundedIdx !== activeIndex) {
       activeIndex = roundedIdx;
@@ -986,8 +1043,12 @@ function initRainbowPortfolioCarousel() {
       // 8. Stacking Z-Index:
       const zIndex = Math.round(50 - absD * 10);
 
-      // Apply 3D Transform
-      card.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, ${curZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      // Cards are already laid out at the centre card's size (CARD_ZOOM), so
+      // the scale is relative to that. The centred card needs no transform
+      // at all, so its text is drawn at its real size: sharp.
+      card.style.transform = absD < 0.01
+        ? 'none'
+        : `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, ${curZ.toFixed(2)}px) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg) scale(${(scale / CARD_ZOOM).toFixed(3)})`;
       card.style.filter = blurPx < 0.25 ? 'none' : `blur(${blurPx.toFixed(1)}px)`;
       card.style.opacity = opacity.toFixed(3);
       card.style.zIndex = zIndex;
@@ -1087,6 +1148,7 @@ function initRainbowPortfolioCarousel() {
 
   // Scroll listeners (Lenis + Native)
   window.addEventListener('scroll', updateRainbowFrame, { passive: true });
+  window.addEventListener('scroll', scheduleSnap, { passive: true });
   if (window.lenisInstance) {
     window.lenisInstance.on('scroll', updateRainbowFrame);
   }
@@ -1094,7 +1156,7 @@ function initRainbowPortfolioCarousel() {
   // Initial render
   setTimeout(() => {
     updateRainbowFrame();
-    updateDots(0);
+    updateDots(activeIndex); // the page may be reloaded part-way through
   }, 100);
 }
 
@@ -1266,12 +1328,12 @@ function initCaseStudyModal() {
         ${data.title}
       </h3>
 
-      <div style="height: 320px; border-radius: 18px; overflow: hidden; margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);">
+      <div class="work-modal-image" style="height: 320px; border-radius: 18px; overflow: hidden; margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);">
         <img src="${data.image}" alt="${data.title}" style="width: 100%; height: 100%; object-fit: cover;">
       </div>
 
       <!-- Verified Metrics Strip -->
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-bottom: 24px; text-align: center;">
+      <div class="work-modal-metrics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-bottom: 24px; text-align: center;">
         ${data.metrics
           .map(
             (m) => `
@@ -1285,7 +1347,7 @@ function initCaseStudyModal() {
       </div>
 
       <!-- Problem vs Strategy Breakdown -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px;">
+      <div class="work-modal-story" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px;">
         <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 14px; padding: 18px;">
           <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #dc2626; margin-bottom: 8px;">
             <i class="fa-solid fa-triangle-exclamation"></i> The Challenge
@@ -1318,15 +1380,23 @@ function initCaseStudyModal() {
       </div>
     `;
 
+    modal._returnFocus = document.activeElement;
+    modal.inert = false;
+    modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('active');
+    modal.querySelector('.modal-window-clean').scrollTop = 0;
+    modal.querySelector('.modal-close-clean').focus({ preventScroll: true });
     document.body.style.overflow = 'hidden';
     if (lenisInstance) lenisInstance.stop();
   };
 
   window.closeWorkModal = function () {
     const modal = document.getElementById('workModal');
-    if (modal) {
+    if (modal && modal.classList.contains('active')) {
       modal.classList.remove('active');
+      modal.inert = true;
+      modal.setAttribute('aria-hidden', 'true');
+      modal._returnFocus?.focus({ preventScroll: true });
       document.body.style.overflow = 'auto';
       if (lenisInstance) lenisInstance.start();
     }
@@ -1339,6 +1409,16 @@ function initCaseStudyModal() {
     });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeWorkModal();
+      if (e.key === 'Tab' && modalBackdrop.classList.contains('active')) {
+        const focusable = modalBackdrop.querySelectorAll('button, a[href]');
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      }
     });
   }
 }
@@ -1352,8 +1432,41 @@ function initAuditContactForm() {
 
   if (!form || !celebrateBox) return;
 
-  form.addEventListener('submit', (e) => {
+  const submitBtn = document.getElementById('btnSubmitContact');
+  const errorBox = document.getElementById('contactFormError');
+  const submitLabel = submitBtn.querySelector('span');
+  let pending = false;
+  let retryRequest = null;
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (pending || !form.reportValidity()) return;
+
+    const val = (id) => (document.getElementById(id)?.value || '').trim();
+    const details = {
+      name: val('cName'), business: val('cBusiness'), email: val('cEmail'),
+      phone: val('cPhone'), city: val('cCity'), service: val('cService'), website: val('cWebsite'),
+    };
+    const fingerprint = JSON.stringify(details);
+    if (!retryRequest || retryRequest.fingerprint !== fingerprint) {
+      retryRequest = { fingerprint, id: crypto.randomUUID() };
+    }
+    pending = true;
+    submitBtn.disabled = true;
+    form.setAttribute('aria-busy', 'true');
+    submitLabel.textContent = 'Saving your request…';
+    errorBox.hidden = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch('/api/audit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({ ...details, requestId: retryRequest.id }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.ok !== true || result.requestId !== retryRequest.id) {
+        throw new Error(result.message || 'Your request could not be saved. Please try again.');
+      }
 
     // Trigger Canvas Confetti with Royal Blue & Growth Emerald palette
     if (typeof window.confetti === 'function') {
@@ -1367,12 +1480,31 @@ function initAuditContactForm() {
 
     form.style.display = 'none';
     celebrateBox.classList.add('show');
+    celebrateBox.focus({ preventScroll: true });
+    retryRequest = null;
+    } catch (error) {
+      errorBox.textContent = error.name === 'AbortError'
+        ? 'We could not confirm the save in time. Please retry; your details are still here.'
+        : error.message === 'Failed to fetch'
+          ? 'Please check your internet connection and try again. Your details are still here.'
+          : error.message;
+      errorBox.hidden = false;
+    } finally {
+      clearTimeout(timeout);
+      pending = false;
+      submitBtn.disabled = false;
+      form.removeAttribute('aria-busy');
+      submitLabel.textContent = 'Request My Free Audit';
+    }
   });
 
   window.resetContactForm = function () {
     form.reset();
+    retryRequest = null;
+    errorBox.hidden = true;
     form.style.display = 'block';
     celebrateBox.classList.remove('show');
+    document.getElementById('cName').focus({ preventScroll: true });
   };
 }
 
@@ -1385,14 +1517,28 @@ function initMobileNavigation() {
 
   if (!toggleBtn || !navLinks) return;
 
-  toggleBtn.addEventListener('click', () => {
-    navLinks.classList.toggle('active');
+  const setOpen = (open) => {
+    navLinks.classList.toggle('active', open);
+    toggleBtn.setAttribute('aria-expanded', String(open));
+  };
+  toggleBtn.addEventListener('click', () => setOpen(!navLinks.classList.contains('active')));
+  navLinks.addEventListener('click', (e) => {
+    if (e.target.closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+      setOpen(false);
+      toggleBtn.focus();
+    }
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1100) setOpen(false);
   });
 
   // Close when clicking outside
   document.addEventListener('click', (e) => {
     if (!toggleBtn.contains(e.target) && !navLinks.contains(e.target)) {
-      navLinks.classList.remove('active');
+      setOpen(false);
     }
   });
 }
@@ -1442,7 +1588,7 @@ function initServicesDeckFlipAnimation() {
   let deltas = [];
 
   function calculateDeltas() {
-    if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 1100 || window.innerHeight <= 600) {
       cards.forEach((card) => {
         card.style.transform = '';
         card.style.opacity = '1';
@@ -1501,7 +1647,7 @@ function initServicesDeckFlipAnimation() {
   }
 
   function updateFrame() {
-    if (window.innerWidth <= 768) return;
+    if (window.innerWidth <= 1100 || window.innerHeight <= 600) return;
     if (!deltas.length) return;
 
     const rect = track.getBoundingClientRect();
@@ -1523,7 +1669,7 @@ function initServicesDeckFlipAnimation() {
     // Update Interactive Progress Indicator Pill
     if (indicatorText && indicatorBadge) {
       if (progress < 0.16) {
-        indicatorText.textContent = 'Scroll to explore all 6 services';
+        indicatorText.textContent = 'Scroll to explore all 8 services';
         indicatorBadge.textContent = 'Start';
         indicatorBadge.style.background = 'var(--color-blue-subtle)';
         indicatorBadge.style.color = 'var(--color-blue)';
@@ -1539,7 +1685,7 @@ function initServicesDeckFlipAnimation() {
         indicatorBadge.style.background = 'rgba(217, 119, 6, 0.12)';
         indicatorBadge.style.color = 'var(--color-amber)';
       } else {
-        indicatorText.textContent = 'All 6 services';
+        indicatorText.textContent = 'All 8 services';
         indicatorBadge.textContent = 'Complete';
         indicatorBadge.style.background = 'var(--color-emerald-subtle)';
         indicatorBadge.style.color = 'var(--color-emerald)';
@@ -1763,89 +1909,3 @@ function initServicesDeckFlipAnimation() {
 }
 
 
-/* ==========================================================================
-   Estimator card: starts tilted back (lying down) and stands upright as you scroll
-   ========================================================================== */
-function initEstimatorStandUp() {
-  const section = document.getElementById('calculator');
-  const target = section && section.querySelector('.container');
-  if (!target) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-  const NAV_GAP = 105;          // card parks just under the floating menu
-  target.style.transformOrigin = '50% 100%';
-  target.style.willChange = 'transform, opacity';
-
-  let current = 0;
-  let goal = 0;
-  let running = false;
-  let pinned = false;
-  let pinDist = 0;
-  // sticky can only travel inside its parent's content box, so the extra scroll room is a spacer, not padding
-  const spacer = document.createElement('div');
-  spacer.setAttribute('aria-hidden', 'true');
-  target.insertAdjacentElement('afterend', spacer);
-
-  function setupPin() {
-    const vh = window.innerHeight;
-    pinned = window.innerWidth > 768 && target.offsetHeight <= vh - NAV_GAP - 24;
-    if (pinned) {
-      pinDist = vh * 0.6;
-      target.style.position = 'sticky';
-      target.style.top = NAV_GAP + 'px';
-      spacer.style.height = pinDist + 'px';
-    } else {
-      pinDist = 0;
-      target.style.position = '';
-      target.style.top = '';
-      spacer.style.height = '0px';
-    }
-  }
-
-  function readGoal() {
-    const vh = window.innerHeight;
-    if (pinned) {
-      // natural (un-stuck) top of the card; keeps decreasing while the card is parked under the menu
-      const padTop = parseFloat(getComputedStyle(section).paddingTop) || 100;
-      const natural = section.getBoundingClientRect().top + padTop;
-      goal = Math.max(0, Math.min(1, (vh - natural) / (vh - NAV_GAP + pinDist * 0.7)));
-    } else {
-      const top = target.getBoundingClientRect().top;
-      goal = Math.max(0, Math.min(1, (vh - top) / (vh * 0.85)));
-    }
-  }
-
-  function draw() {
-    const e = current * current * (3 - 2 * current);
-    if (current >= 0.999) {
-      target.style.transform = 'none';
-      target.style.opacity = '1';
-      return;
-    }
-    const maxAngle = window.innerWidth <= 768 ? 45 : 70;
-    target.style.transform = 'perspective(1600px) rotateX(' + ((1 - e) * maxAngle).toFixed(2) + 'deg) translateY(' + ((1 - e) * 70).toFixed(1) + 'px) scale(' + (0.9 + 0.1 * e).toFixed(4) + ')';
-    target.style.opacity = (0.25 + 0.75 * Math.min(1, e * 1.4)).toFixed(3);
-  }
-
-  function frame() {
-    current += (goal - current) * 0.075;
-    if (Math.abs(goal - current) < 0.0005) current = goal;
-    draw();
-    if (current !== goal) requestAnimationFrame(frame);
-    else running = false;
-  }
-
-  function kick() {
-    readGoal();
-    if (!running) { running = true; requestAnimationFrame(frame); }
-  }
-
-  function onResize() { setupPin(); kick(); }
-
-  window.addEventListener('scroll', kick, { passive: true });
-  window.addEventListener('resize', onResize);
-  setupPin();
-  readGoal();
-  current = goal;
-  draw();
-}
