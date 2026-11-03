@@ -25,7 +25,93 @@ document.addEventListener('DOMContentLoaded', () => {
   initFloatingDock();
   initWorkVideos();
   initPosterLightbox();
+  initClientLogoHover();
 });
+
+/* ==========================================================================
+   Client logo strip: while the cursor is over it, the strip eases down to a
+   crawl (it never fully stops), so the logo you point at stays under the
+   cursor. Only the logo under the pointer pops. CSS :hover is not re-checked
+   when content moves under a still cursor, so it is checked every frame.
+   ========================================================================== */
+function initClientLogoHover() {
+  const marquee = document.querySelector('.clients-marquee');
+  const track = document.querySelector('.clients-track');
+  if (!marquee || !track) return;
+
+  const HOVER_SPEED = 0.08; // fraction of normal speed while hovering
+
+  let x = 0;
+  let y = 0;
+  let inside = false;
+  let current = null;
+  let rafId = 0;
+
+  // Smoothly change the CSS animation's speed (no jump in position).
+  // Time-based easing, so it feels the same on 60 Hz, 144 Hz or slow devices.
+  let rate = 1;
+  let targetRate = 1;
+  let speedRaf = 0;
+  let lastTime = 0;
+  const speedTick = (now) => {
+    const anim = track.getAnimations()[0];
+    if (!anim) { speedRaf = 0; return; }
+    const dt = lastTime ? Math.min(now - lastTime, 500) : 16;
+    lastTime = now;
+    rate += (targetRate - rate) * (1 - Math.exp(-dt / 180));
+    if (Math.abs(targetRate - rate) < 0.005) rate = targetRate;
+    anim.playbackRate = rate;
+    if (rate === targetRate) {
+      speedRaf = 0;
+      lastTime = 0;
+    } else {
+      speedRaf = requestAnimationFrame(speedTick);
+    }
+  };
+  const setSpeed = (value) => {
+    targetRate = value;
+    if (!speedRaf) speedRaf = requestAnimationFrame(speedTick);
+  };
+
+  const setPop = (img) => {
+    if (img === current) return;
+    current?.classList.remove('is-pop');
+    img?.classList.add('is-pop');
+    current = img;
+  };
+
+  const tick = () => {
+    if (!inside) return;
+    const el = document.elementFromPoint(x, y);
+    if (!el || !marquee.contains(el)) {
+      // Page scrolled away under a still cursor.
+      inside = false;
+      setPop(null);
+      setSpeed(1);
+      return;
+    }
+    setPop(el.closest('.clients-row img'));
+    rafId = requestAnimationFrame(tick);
+  };
+
+  marquee.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    x = e.clientX;
+    y = e.clientY;
+    if (!inside) {
+      inside = true;
+      setSpeed(HOVER_SPEED);
+      rafId = requestAnimationFrame(tick);
+    }
+  });
+
+  marquee.addEventListener('pointerleave', () => {
+    inside = false;
+    cancelAnimationFrame(rafId);
+    setPop(null);
+    setSpeed(1);
+  });
+}
 
 /* ==========================================================================
    Video work: load videos only near the viewport; reels autoplay muted
