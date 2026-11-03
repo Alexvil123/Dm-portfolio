@@ -222,6 +222,9 @@ function initStickyFit() {
       container: containerOf('.services-deck-container'),
       stage: containerOf('.services-deck-stage'),
       desktopOnly: true,
+      // CSS zoom lays text out at the smaller size (sharp), unlike
+      // transform: scale, which shrinks a full-size picture of it (soft).
+      useZoom: true,
       // Bottom of the dealt card grid, relative to the container top
       bottom: (container, stage, top) => top + stage.offsetHeight,
     },
@@ -245,18 +248,33 @@ function initStickyFit() {
       const { container, stage } = t;
       if (t.desktopOnly && window.innerWidth <= 768) {
         container.style.transform = '';
+        container.style.zoom = '';
         return;
       }
 
       container.style.transform = 'none';
+      container.style.zoom = '';
       const top = stage.getBoundingClientRect().top - container.getBoundingClientRect().top;
       const natural = t.bottom(container, stage, top) + 16;
       const available = container.clientHeight - 8; // keep a small gap under the navbar
       if (!natural || available <= 0) return;
 
       const scale = Math.max(0.55, Math.min(1, available / natural));
-      const offsetY = 8 + Math.max(0, (available - natural * scale) / 2);
-      container.style.transform = `translateY(${offsetY.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+      const offsetY = Math.round(8 + Math.max(0, (available - natural * scale) / 2));
+
+      if (t.useZoom) {
+        // Lengths inside a zoomed element are multiplied by the zoom, so the
+        // offset is divided by it to land on the same on-screen position.
+        const zoomed = scale < 0.999;
+        container.style.zoom = zoomed ? scale.toFixed(3) : '';
+        container.style.transform = `translateY(${(offsetY / (zoomed ? scale : 1)).toFixed(2)}px)`;
+        return;
+      }
+
+      // No transform at all when nothing needs scaling keeps text pixel-sharp.
+      container.style.transform = scale >= 0.999
+        ? `translateY(${offsetY}px)`
+        : `translateY(${offsetY}px) scale(${scale.toFixed(3)})`;
     });
   }
 
@@ -756,24 +774,21 @@ function init3DTiltAndGlare() {
       card.style.setProperty('--glare-x', `${glareX}%`);
       card.style.setProperty('--glare-y', `${glareY}%`);
 
-      if (card.closest('#servicesGrid')) {
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-      } else {
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.015, 1.015, 1.015)`;
-      }
+      // Service cards only move the glare (their hover lift is in CSS); a 3D
+      // tilt would turn their text into a blurry stretched snapshot.
+      if (card.closest('#servicesGrid')) return;
+
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.015, 1.015, 1.015)`;
     });
 
     card.addEventListener('mouseleave', () => {
-      if (card.closest('#servicesGrid') && !card.classList.contains('settled')) return;
-      if (card.closest('#servicesGrid')) {
-        card.style.transform = 'translate3d(0, 0, 0) scale(1)';
-      } else {
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-      }
+      if (card.closest('#servicesGrid')) return;
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
       card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
     });
 
     card.addEventListener('mouseenter', () => {
+      if (card.closest('#servicesGrid')) return;
       card.style.transition = 'transform 0.1s ease-out';
     });
   });
@@ -1553,11 +1568,12 @@ function initServicesDeckFlipAnimation() {
         // STAGE 1: Single Master Card Popped Up in Front and Center
         // -------------------------------------------------------------------
         if (index === 0) {
-          // Card 0: Popped up in front and center with automatic glare
+          // Card 0: Popped up in front and center with automatic glare.
+          // Enlarged with a 2D scale (not a 3D push) so its text stays sharp.
           curX = delta.dx;
           curY = delta.dy;
-          curZ = 85;
-          scale = 1.08;
+          curZ = 0;
+          scale = 1.14;
           opacity = 1.0;
           card.style.zIndex = 20;
           shadowY = 25;
@@ -1592,8 +1608,8 @@ function initServicesDeckFlipAnimation() {
           const ease = easeInOutQuad(dealProgress);
           curX = delta.dx * (1 - ease);
           curY = delta.dy * (1 - ease);
-          curZ = 85 * (1 - ease);
-          scale = 1.08 - 0.08 * ease;
+          curZ = 0;
+          scale = 1.14 - 0.14 * ease;
           opacity = 1.0;
           card.style.zIndex = 15;
           shadowY = Math.round(25 - 15 * ease);
@@ -1684,13 +1700,21 @@ function initServicesDeckFlipAnimation() {
         card.classList.add('settled');
       }
 
-      // Apply transforms
-      card.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, ${curZ.toFixed(2)}px) scale(${scale.toFixed(3)})`;
+      // Apply transforms. Use no transform at rest, and a 2D transform when
+      // there is no depth, so text is drawn crisply instead of as a 3D snapshot.
+      const atRest = curX === 0 && curY === 0 && curZ === 0 && scale === 1;
+      if (atRest) {
+        card.style.transform = 'none';
+      } else if (curZ === 0) {
+        card.style.transform = `translate(${Math.round(curX)}px, ${Math.round(curY)}px) scale(${scale.toFixed(3)})`;
+      } else {
+        card.style.transform = `translate3d(${curX.toFixed(2)}px, ${curY.toFixed(2)}px, ${curZ.toFixed(2)}px) scale(${scale.toFixed(3)})`;
+      }
       card.style.opacity = opacity.toFixed(3);
       card.style.boxShadow = `0 ${shadowY}px ${shadowBlur}px rgba(15, 23, 42, ${shadowAlpha})`;
 
       if (flipper) {
-        flipper.style.transform = `rotateY(${flipAngle.toFixed(1)}deg)`;
+        flipper.style.transform = flipAngle === 0 ? 'none' : `rotateY(${flipAngle.toFixed(1)}deg)`;
       }
 
       if (content) {

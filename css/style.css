@@ -1085,11 +1085,54 @@ body.cursor-hover .magnetic-cursor {
   border-radius: 20px;
   perspective: 1400px;
   transform-style: preserve-3d;
-  will-change: transform, box-shadow, z-index;
+}
+
+/* Once a card has finished flipping, render it flat (no 3D layer) so the
+   text is drawn crisply at its real size instead of as a stretched snapshot. */
+.service-card-clean.settled,
+.service-card-clean.settled .card-3d-flipper {
+  transform-style: flat;
+}
+
+.service-card-clean.settled .card-face {
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+}
+
+.service-card-clean.settled .card-face-back {
+  visibility: hidden;
+}
+
+/* Cursor-following glare on the settled (front) cards */
+.card-face-front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 0%), rgba(37, 99, 235, 0.10) 0%, rgba(37, 99, 235, 0.04) 28%, transparent 55%),
+    radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 0%), rgba(255, 255, 255, 0.9) 0%, transparent 22%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.service-card-clean.settled:hover .card-face-front::after {
+  opacity: 1;
+}
+
+.card-face-front .sc-content-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.service-card-clean.settled {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .service-card-clean.settled:hover {
-  transform: translateY(-6px) scale(1.02) !important;
+  transform: translateY(-6px) !important;
   z-index: 25 !important;
 }
 
@@ -1120,12 +1163,13 @@ body.cursor-hover .magnetic-cursor {
 /* FRONT FACE: Holds detailed content */
 .card-face-front {
   position: relative;
+  /* Fill the whole card so cards in a row line up evenly with no empty strip below. */
+  height: 100%;
   background: #ffffff;
   border: 1px solid var(--border-card);
   padding: 24px 26px;
   display: flex;
   flex-direction: column;
-  transform: rotateY(0deg);
   z-index: 2;
 }
 
@@ -1155,29 +1199,37 @@ body.cursor-hover .magnetic-cursor {
   border: 1px solid var(--border-card);
 }
 
-/* Automatic Glare Sheen Sweep */
+/* Automatic Glare Sheen Sweep: a slanted light band that glides across
+   the card (about 1.4s), then pauses before the next pass. */
 .card-auto-glare {
   position: absolute;
-  inset: -120%;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 55%;
   background: linear-gradient(
-    115deg,
-    transparent 0%,
-    transparent 42%,
-    rgba(255, 255, 255, 0.55) 48%,
-    rgba(255, 255, 255, 0.9) 50%,
-    rgba(255, 255, 255, 0.55) 52%,
-    transparent 58%,
-    transparent 100%
+    90deg,
+    rgba(15, 23, 42, 0) 0%,
+    rgba(15, 23, 42, 0.05) 22%,
+    rgba(255, 255, 255, 0.55) 38%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.55) 62%,
+    rgba(15, 23, 42, 0.05) 78%,
+    rgba(15, 23, 42, 0) 100%
   );
-  transform: rotate(-20deg);
-  animation: autoGlareSweep 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform: translateX(-130%) skewX(-18deg);
+  animation: autoGlareSweep 3.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
   pointer-events: none;
   z-index: 5;
 }
 
 @keyframes autoGlareSweep {
-  0% { transform: translateY(-120%) rotate(-20deg); }
-  55%, 100% { transform: translateY(120%) rotate(-20deg); }
+  0% { transform: translateX(-130%) skewX(-18deg); }
+  40%, 100% { transform: translateX(230%) skewX(-18deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-auto-glare { animation: none; opacity: 0; }
 }
 
 /* Center Logo Layout on Back Face */
@@ -1231,7 +1283,7 @@ body.cursor-hover .magnetic-cursor {
 
 /* Color Themes for Back Faces */
 .card-theme-blue {
-  background: linear-gradient(145deg, #ffffff 0%, #eff6ff 50%, #dbeafe 100%);
+  background: linear-gradient(145deg, #f8fbff 0%, #dbeafe 55%, #bfdbfe 100%);
   border-color: rgba(37, 99, 235, 0.25) !important;
 }
 .card-theme-blue .card-center-logo-circle {
@@ -1244,7 +1296,7 @@ body.cursor-hover .magnetic-cursor {
 }
 
 .card-theme-emerald {
-  background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 50%, #d1fae5 100%);
+  background: linear-gradient(145deg, #f6fffb 0%, #d1fae5 55%, #a7f3d0 100%);
   border-color: rgba(5, 150, 105, 0.25) !important;
 }
 .card-theme-emerald .card-center-logo-circle {
@@ -1257,7 +1309,7 @@ body.cursor-hover .magnetic-cursor {
 }
 
 .card-theme-indigo {
-  background: linear-gradient(145deg, #ffffff 0%, #eef2ff 50%, #e0e7ff 100%);
+  background: linear-gradient(145deg, #f8f9ff 0%, #e0e7ff 55%, #c7d2fe 100%);
   border-color: rgba(79, 70, 229, 0.25) !important;
 }
 .card-theme-indigo .card-center-logo-circle {
@@ -1270,7 +1322,7 @@ body.cursor-hover .magnetic-cursor {
 }
 
 .card-theme-amber {
-  background: linear-gradient(145deg, #ffffff 0%, #fffbeb 50%, #fef3c7 100%);
+  background: linear-gradient(145deg, #fffdf6 0%, #fef3c7 55%, #fde68a 100%);
   border-color: rgba(217, 119, 6, 0.25) !important;
 }
 .card-theme-amber .card-center-logo-circle {
@@ -1283,7 +1335,7 @@ body.cursor-hover .magnetic-cursor {
 }
 
 .card-theme-violet {
-  background: linear-gradient(145deg, #ffffff 0%, #f5f3ff 50%, #ede9fe 100%);
+  background: linear-gradient(145deg, #fbfaff 0%, #ede9fe 55%, #ddd6fe 100%);
   border-color: rgba(124, 58, 237, 0.25) !important;
 }
 .card-theme-violet .card-center-logo-circle {
@@ -1296,7 +1348,7 @@ body.cursor-hover .magnetic-cursor {
 }
 
 .card-theme-teal {
-  background: linear-gradient(145deg, #ffffff 0%, #f0fdfa 50%, #ccfbf1 100%);
+  background: linear-gradient(145deg, #f6fffd 0%, #ccfbf1 55%, #99f6e4 100%);
   border-color: rgba(13, 148, 136, 0.25) !important;
 }
 .card-theme-teal .card-center-logo-circle {
