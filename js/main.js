@@ -606,66 +606,113 @@ function initSplitComparisonSlider() {
 
   if (!sliderWrapper || !slideAfter || !sliderHandle) return;
 
-  let isDragging = false;
+  let gesture = null;
+  let position = 50;
   let hasUserInteracted = false;
+
+  function setPercentage(percentage) {
+    position = Math.max(4, Math.min(96, percentage));
+    sliderWrapper.style.setProperty('--split-pos', `${position}%`);
+    sliderHandle.setAttribute('aria-valuenow', String(Math.round(position)));
+    sliderHandle.setAttribute('aria-valuetext', `${Math.round(position)}% after creative`);
+  }
 
   function setSliderPosition(clientX) {
     const rect = sliderWrapper.getBoundingClientRect();
-    const offsetX = clientX - rect.left;
-    let percentage = (offsetX / rect.width) * 100;
-
-    // Constrain within 4% and 96%
-    percentage = Math.max(4, Math.min(96, percentage));
-
-    sliderWrapper.style.setProperty('--split-pos', `${percentage}%`);
+    if (rect.width) setPercentage(((clientX - rect.left) / rect.width) * 100);
   }
 
-  // Pointer & Mouse event listeners
-  sliderWrapper.addEventListener('pointerdown', (e) => {
-    isDragging = true;
+  function beginGesture(id, x, y, touch) {
+    if (gesture) return false;
     hasUserInteracted = true;
-    sliderWrapper.setPointerCapture(e.pointerId);
-    setSliderPosition(e.clientX);
-    sliderWrapper.classList.add('dragging');
-  });
-
-  window.addEventListener('pointermove', (e) => {
-    if (!isDragging) return;
-    setSliderPosition(e.clientX);
-  });
-
-  window.addEventListener('pointerup', () => {
-    if (isDragging) {
-      isDragging = false;
-      sliderWrapper.classList.remove('dragging');
+    gesture = { id, x, y, touch, dragging: !touch };
+    if (!touch) {
+      sliderWrapper.classList.add('dragging');
+      setSliderPosition(x);
     }
-  });
+    return true;
+  }
 
-  sliderWrapper.addEventListener('pointercancel', () => {
-    isDragging = false;
+  function finishGesture() {
+    const previous = gesture;
+    gesture = null;
     sliderWrapper.classList.remove('dragging');
-  });
-
-  // Touch fallback
-  sliderWrapper.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      isDragging = true;
-      hasUserInteracted = true;
-      setSliderPosition(e.touches[0].clientX);
+    if (previous && sliderWrapper.hasPointerCapture?.(previous.id)) {
+      sliderWrapper.releasePointerCapture(previous.id);
     }
-  }, { passive: true });
+  }
 
-  window.addEventListener('touchmove', (e) => {
-    if (!isDragging || !e.touches.length) return;
-    setSliderPosition(e.touches[0].clientX);
-  }, { passive: true });
+  function moveGesture(id, x, y, event) {
+    if (!gesture || gesture.id !== id) return;
+    if (!gesture.dragging) {
+      const dx = Math.abs(x - gesture.x);
+      const dy = Math.abs(y - gesture.y);
+      // A vertical swipe should scroll the page without moving the divider.
+      if (dy > 6 && dy >= dx) { finishGesture(); return; }
+      if (dx <= 6 || dx <= dy) return;
+      gesture.dragging = true;
+      sliderWrapper.classList.add('dragging');
+    }
+    if (event.cancelable) event.preventDefault();
+    setSliderPosition(x);
+  }
 
-  window.addEventListener('touchend', () => {
-    isDragging = false;
+  function endGesture(id, x, y) {
+    if (!gesture || gesture.id !== id) return;
+    if (!gesture.dragging && Math.abs(x - gesture.x) <= 6 && Math.abs(y - gesture.y) <= 6) {
+      setSliderPosition(x); // A tap can also place the divider.
+    }
+    finishGesture();
+  }
+
+  if (window.PointerEvent) {
+    sliderWrapper.addEventListener('pointerdown', (e) => {
+      if (e.isPrimary === false || e.button !== 0) return;
+      if (beginGesture(e.pointerId, e.clientX, e.clientY, e.pointerType === 'touch')) {
+        sliderWrapper.setPointerCapture(e.pointerId);
+      }
+    });
+    sliderWrapper.addEventListener('pointermove', (e) => moveGesture(e.pointerId, e.clientX, e.clientY, e));
+    sliderWrapper.addEventListener('pointerup', (e) => endGesture(e.pointerId, e.clientX, e.clientY));
+    for (const type of ['pointercancel', 'lostpointercapture']) {
+      sliderWrapper.addEventListener(type, (e) => {
+        if (gesture?.id === e.pointerId) finishGesture();
+      });
+    }
+  } else {
+    // Older touch browsers use this path exclusively, never alongside pointers.
+    sliderWrapper.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) { finishGesture(); return; }
+      const touch = e.touches[0];
+      beginGesture(touch.identifier, touch.clientX, touch.clientY, true);
+    }, { passive: true });
+    sliderWrapper.addEventListener('touchmove', (e) => {
+      const touch = Array.from(e.touches).find(t => t.identifier === gesture?.id);
+      if (touch) moveGesture(touch.identifier, touch.clientX, touch.clientY, e);
+    }, { passive: false });
+    sliderWrapper.addEventListener('touchend', (e) => {
+      const touch = Array.from(e.changedTouches).find(t => t.identifier === gesture?.id);
+      if (touch) endGesture(touch.identifier, touch.clientX, touch.clientY);
+    });
+    sliderWrapper.addEventListener('touchcancel', finishGesture);
+    sliderWrapper.addEventListener('mousedown', (e) => {
+      if (e.button === 0) beginGesture('mouse', e.clientX, e.clientY, false);
+    });
+    window.addEventListener('mousemove', (e) => moveGesture('mouse', e.clientX, e.clientY, e));
+    window.addEventListener('mouseup', (e) => endGesture('mouse', e.clientX, e.clientY));
+  }
+  sliderWrapper.addEventListener('dragstart', (e) => e.preventDefault());
+  sliderHandle.addEventListener('keydown', (e) => {
+    const next = { ArrowLeft: position - 5, ArrowDown: position - 5,
+      ArrowRight: position + 5, ArrowUp: position + 5, Home: 4, End: 96 }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    hasUserInteracted = true;
+    setPercentage(next);
   });
 
   // Initial position: 50%
-  sliderWrapper.style.setProperty('--split-pos', '50%');
+  setPercentage(50);
 
   // Interactive subtle oscillation hint when scrolled into view
   const autoHintObserver = new IntersectionObserver((entries) => {
@@ -676,14 +723,12 @@ function initSplitComparisonSlider() {
         const totalFrames = 80;
         
         function oscillate() {
-          if (hasUserInteracted || frame >= totalFrames) {
-            sliderWrapper.style.setProperty('--split-pos', '50%');
-            return;
-          }
+          if (hasUserInteracted) return;
+          if (frame >= totalFrames) { setPercentage(50); return; }
           frame++;
           // Smooth sine sweep: 50% -> 68% -> 32% -> 50%
           const wave = Math.sin((frame / totalFrames) * Math.PI * 2) * 16;
-          sliderWrapper.style.setProperty('--split-pos', `${50 + wave}%`);
+          setPercentage(50 + wave);
           requestAnimationFrame(oscillate);
         }
         setTimeout(() => requestAnimationFrame(oscillate), 400);
