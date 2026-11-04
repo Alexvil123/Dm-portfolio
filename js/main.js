@@ -1211,49 +1211,38 @@ function initRainbowPortfolioCarousel() {
 function initInteractiveScopeEstimator() {
   const checkboxes = document.querySelectorAll('#calcServices input[type="checkbox"]');
   const pkgTierName = document.getElementById('pkgTierName');
-  const pkgPriceDisplay = document.getElementById('pkgPriceDisplay');
   const pkgServicesCount = document.getElementById('pkgServicesCount');
-  const pkgTimelineDisplay = document.getElementById('pkgTimelineDisplay');
+  const quoteLink = document.getElementById('btnBookPackage');
 
   if (!checkboxes.length) return;
 
   function recalculateScope() {
     let selectedCount = 0;
-    let minBudget = 0;
-    let estimatedMaxDays = 4;
+    const selectedServices = [];
 
     checkboxes.forEach((cb) => {
       const parentLabel = cb.closest('.check-box-clean');
       if (cb.checked) {
         if (parentLabel) parentLabel.classList.add('checked');
         selectedCount++;
-        const price = parseInt(cb.getAttribute('data-price'), 10) || 350;
-        const days = parseInt(cb.getAttribute('data-days'), 10) || 5;
-        minBudget += price;
-        if (days > estimatedMaxDays) estimatedMaxDays = days;
+        selectedServices.push(parentLabel.querySelector('strong').textContent.trim());
       } else {
         if (parentLabel) parentLabel.classList.remove('checked');
       }
     });
 
     if (selectedCount === 0) {
-      if (pkgTierName) pkgTierName.textContent = 'Starter Plan';
-      if (pkgPriceDisplay) pkgPriceDisplay.innerHTML = '$350 <small>/ mo</small>';
+      if (pkgTierName) pkgTierName.textContent = 'Choose your services';
       if (pkgServicesCount) pkgServicesCount.textContent = 'No services selected';
-      if (pkgTimelineDisplay) pkgTimelineDisplay.textContent = '3 - 5 Days';
+      if (quoteLink) quoteLink.href = 'https://wa.me/918220827196?text=' + encodeURIComponent('Hi! I’d like to discuss a project and get a quote.');
       return;
     }
 
-    let tierLabel = 'Growth Retainer';
-    if (selectedCount === 1) tierLabel = 'Focused Channel Sprint';
-    else if (selectedCount >= 4) tierLabel = 'Full-Service Growth Program';
-
-    const maxBudget = Math.round(minBudget * 1.38);
-
-    if (pkgTierName) pkgTierName.textContent = tierLabel;
-    if (pkgPriceDisplay) pkgPriceDisplay.innerHTML = `$${minBudget.toLocaleString()} - $${maxBudget.toLocaleString()} <small>/ mo</small>`;
+    if (pkgTierName) pkgTierName.textContent = 'A plan built for your business';
     if (pkgServicesCount) pkgServicesCount.textContent = `${selectedCount} ${selectedCount === 1 ? 'Service' : 'Services'}`;
-    if (pkgTimelineDisplay) pkgTimelineDisplay.textContent = `${Math.max(3, estimatedMaxDays - 2)} - ${estimatedMaxDays} Days`;
+    if (quoteLink) quoteLink.href = 'https://wa.me/918220827196?text=' + encodeURIComponent(
+      'Hi! I’d like to discuss these services and get a quote:\n\n' + selectedServices.map(name => '• ' + name).join('\n')
+    );
   }
 
   checkboxes.forEach((cb) => cb.addEventListener('change', recalculateScope));

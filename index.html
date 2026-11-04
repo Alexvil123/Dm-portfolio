@@ -23,7 +23,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/style.css?v=20261104-touch-slider">
+  <link rel="stylesheet" href="css/style.css?v=20261104-project-quote">
 </head>
 <body class="smooth-light-body">
 
@@ -50,7 +50,7 @@
         <li><a href="#videos" class="nav-item">Videos</a></li>
         <li><a href="#creatives" class="nav-item">Creatives</a></li>
         <li><a href="#portfolio" class="nav-item">Case Studies</a></li>
-        <li><a href="#calculator" class="nav-item">Estimator</a></li>
+        <li><a href="#calculator" class="nav-item">Plan a Project</a></li>
         <li><a href="#reviews" class="nav-item">Testimonials</a></li>
       </ul>
 
@@ -859,16 +859,16 @@
         <div class="calc-card-clean reveal-on-scroll">
           <div class="calc-grid-clean">
             <div class="cgc-left">
-              <span class="badge-tag">PROJECT ESTIMATOR</span>
+              <span class="badge-tag">CUSTOM PROPOSAL</span>
               <h2 class="cgc-title">Plan Your Growth</h2>
               <p class="cgc-desc">
-                Select the services you need. The estimator shows an indicative monthly investment and kickoff timeline.
+                Select the services you need to request a proposal tailored to your business goals, scope and timeline.
               </p>
 
               <!-- Services Checkboxes -->
               <div class="service-checkboxes" id="calcServices">
                 <label class="check-box-clean checked">
-                  <input type="checkbox" value="social_media" data-price="400" data-days="7" checked>
+                  <input type="checkbox" value="social_media" checked>
                   <div class="cbc-text">
                     <strong>Social Media Marketing &amp; Growth Strategy</strong>
                     <span>Content calendar, posting, community management and monthly growth reports</span>
@@ -877,7 +877,7 @@
                 </label>
 
                 <label class="check-box-clean checked">
-                  <input type="checkbox" value="google_ads" data-price="450" data-days="5" checked>
+                  <input type="checkbox" value="google_ads" checked>
                   <div class="cbc-text">
                     <strong>Google Ads &amp; PPC Management</strong>
                     <span>Search, Performance Max and YouTube campaigns with conversion tracking</span>
@@ -886,7 +886,7 @@
                 </label>
 
                 <label class="check-box-clean">
-                  <input type="checkbox" value="meta_ads" data-price="450" data-days="5">
+                  <input type="checkbox" value="meta_ads">
                   <div class="cbc-text">
                     <strong>Meta Ads (Facebook/Instagram Advertising)</strong>
                     <span>Audience targeting, ad creatives, pixel and CAPI setup, budget optimization</span>
@@ -895,7 +895,7 @@
                 </label>
 
                 <label class="check-box-clean">
-                  <input type="checkbox" value="lead_gen" data-price="350" data-days="6">
+                  <input type="checkbox" value="lead_gen">
                   <div class="cbc-text">
                     <strong>Lead Generation &amp; Marketing Automation</strong>
                     <span>Lead forms, WhatsApp and email follow-ups, CRM workflows</span>
@@ -904,7 +904,7 @@
                 </label>
 
                 <label class="check-box-clean">
-                  <input type="checkbox" value="cro_lander" data-price="400" data-days="6">
+                  <input type="checkbox" value="cro_lander">
                   <div class="cbc-text">
                     <strong>Landing Page &amp; Conversion Optimization</strong>
                     <span>Mobile-first landing pages, A/B testing and fast load speed</span>
@@ -913,7 +913,7 @@
                 </label>
 
                 <label class="check-box-clean">
-                  <input type="checkbox" value="performance" data-price="500" data-days="5">
+                  <input type="checkbox" value="performance">
                   <div class="cbc-text">
                     <strong>Performance Marketing (High-ROI Campaigns)</strong>
                     <span>Full-funnel Google and Meta campaigns managed for ROAS</span>
@@ -922,7 +922,7 @@
                 </label>
 
                 <label class="check-box-clean">
-                  <input type="checkbox" value="ecommerce" data-price="400" data-days="8">
+                  <input type="checkbox" value="ecommerce">
                   <div class="cbc-text">
                     <strong>E-Commerce Listing &amp; Ads (Amazon/Flipkart)</strong>
                     <span>Product listings, A+ content and sponsored ads</span>
@@ -931,7 +931,7 @@
                 </label>
 
                 <label class="check-box-clean">
-                  <input type="checkbox" value="content_brand" data-price="350" data-days="10">
+                  <input type="checkbox" value="content_brand">
                   <div class="cbc-text">
                     <strong>Content Marketing &amp; Brand Strategy</strong>
                     <span>Brand positioning, reels, creatives and blog content</span>
@@ -944,12 +944,12 @@
             <!-- Package Output Summary -->
             <div class="cgc-right">
               <div class="package-card-clean">
-                <span class="pcc-tag">ESTIMATED INVESTMENT &amp; TIMELINE</span>
-                <h3 class="pcc-title" id="pkgTierName">Growth Retainer</h3>
+                <span class="pcc-tag">YOUR PROJECT SUMMARY</span>
+                <h3 class="pcc-title" id="pkgTierName">A plan built for your business</h3>
                 
                 <div class="pcc-price-row">
-                  <span class="pcc-lbl">Estimated monthly retainer:</span>
-                  <div class="pcc-amount" id="pkgPriceDisplay">$850 - $1,200 <small>/ mo</small></div>
+                  <span class="pcc-lbl">Pricing:</span>
+                  <div class="pcc-amount" style="font-size: clamp(1.5rem, 4vw, 2rem);">Custom pricing</div>
                 </div>
 
                 <div class="pcc-details">
@@ -959,7 +959,7 @@
                   </div>
                   <div class="pccd-item">
                     <span>Kickoff timeline:</span>
-                    <strong id="pkgTimelineDisplay">5 - 7 Days</strong>
+                    <strong id="pkgTimelineDisplay">Agreed together</strong>
                   </div>
                   <div class="pccd-item">
                     <span>Reporting:</span>
@@ -972,12 +972,12 @@
                 </div>
 
                 <div class="pcc-actions">
-                  <a href="#contact" class="btn-primary-blue w-100 magnetic-item" id="btnBookPackage">
-                    <span>Request This Plan</span>
+                  <a href="#contact" class="btn-primary-blue w-100 magnetic-item" id="btnBookPackage" target="_blank" rel="noopener noreferrer">
+                    <span>Get a Custom Quote</span>
                     <i class="fa-solid fa-arrow-right"></i>
                   </a>
                   <p class="pcc-guarantee">
-                    Transparent monthly pricing. No hidden fees.
+                    Receive a tailored quote based on your requirements.
                   </p>
                 </div>
               </div>
@@ -1247,6 +1247,6 @@
     </button>
   </div>
 
-  <script src="js/main.js?v=20261104-touch-slider"></script>
+  <script src="js/main.js?v=20261104-project-quote"></script>
 </body>
 </html>
