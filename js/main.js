@@ -1264,108 +1264,96 @@ function initInteractiveScopeEstimator() {
    10. Case Study Deep-Dive Modal
    ========================================================================== */
 const caseStudyBlueprints = {
-  "ivn_rice": {
-    "title": "IVN Rice: product campaign",
-    "badge": "PRODUCT CREATIVE",
-    "image": "assets/work/poster-ivn-rice.jpg",
-    "metrics": [
-      {
-        "num": "IVN Rice",
-        "lbl": "Brand"
-      },
-      {
-        "num": "Poster",
-        "lbl": "Format"
-      },
-      {
-        "num": "Tamil",
-        "lbl": "Project"
-      }
+  social_viral: {
+    title: 'Multi-Platform Organic Growth Campaign',
+    badge: '1.2M+ ORGANIC REACH',
+    image: 'assets/images/social_viral_doodle.jpg',
+    metrics: [
+      { num: '1.2M', lbl: 'Organic Impressions' },
+      { num: '120k', lbl: 'Engagements' },
+      { num: '+380%', lbl: 'Profile Visits' },
+      { num: '14.8%', lbl: 'Avg Engagement Rate' },
     ],
-    "description": "A product-focused poster for IVN Chengalpattu Rice, with Tamil copy and the pack at the centre of the design."
+    problem: 'The client had strong products but almost no organic traction. Standard product posts averaged under 250 views with minimal engagement.',
+    strategy: 'Ran a 30-day content campaign built on trend research, with educational Reels, curiosity-led hooks, illustrated infographics and prompts that start conversation.',
+    execution: [
+      'Researched trending audio and formats and matched them to the most common audience questions.',
+      'Designed high-contrast carousels with hand-drawn elements, increasing saves by 400%.',
+      'Wrote opinion-led questions into captions, generating over 1,200 organic comments.',
+    ],
   },
-  "saaral_hotels": {
-    "title": "Saaral Hotels: a closer look",
-    "badge": "HOTEL REEL",
-    "image": "assets/video/reel-saaral-hotels.jpg",
-    "metrics": [
-      {
-        "num": "Saaral",
-        "lbl": "Brand"
-      },
-      {
-        "num": "Reel",
-        "lbl": "Format"
-      },
-      {
-        "num": "Hotel",
-        "lbl": "Project"
-      }
+  ugc_reel: {
+    title: '"Why 90% of Ads Fail in 3 Seconds" UGC Video Ad',
+    badge: '4.8x META ADS ROAS',
+    image: 'assets/images/ad_ugc_reel.jpg',
+    metrics: [
+      { num: '48.2%', lbl: '3-Sec Hook Rate' },
+      { num: '4.8x', lbl: 'Blended ROAS' },
+      { num: '$18.20', lbl: 'CPA Reduction (-64%)' },
+      { num: '3.8%', lbl: 'Outbound CTR' },
     ],
-    "description": "A short video from the Saaral Hotels project. Watch the full reel in the video section.",
-    "video": "assets/video/reel-saaral-hotels.mp4"
+    problem: 'The brand was spending $4,500 per month on generic studio ads, resulting in an unsustainable $72 CPA and an 84% viewer drop-off within the first 2 seconds.',
+    strategy: 'Produced a UGC-style video opening with the hook "Why 90% of ads fail in 3 seconds", using a cut every 1.4 seconds to hold viewer attention.',
+    execution: [
+      '0:00 - 0:03: A curiosity-led opening hook that stops the scroll.',
+      '0:03 - 0:08: Fast B-roll showing the product and real-world results.',
+      '0:08 - 0:15: Customer proof followed by a clear "Shop Now" call to action and offer.',
+    ],
   },
-  "quade_program": {
-    "title": "Quade: Knowledge Upscale Program",
-    "badge": "PROGRAMME LAUNCH",
-    "image": "assets/work/poster-quade-kup.jpg",
-    "metrics": [
-      {
-        "num": "Quade",
-        "lbl": "Brand"
-      },
-      {
-        "num": "Poster",
-        "lbl": "Format"
-      },
-      {
-        "num": "Launch",
-        "lbl": "Project"
-      }
+  meta_feed: {
+    title: 'Apex Pro: Social-Proof Meta Feed Ad',
+    badge: 'SCALED TO $80K/MO',
+    image: 'assets/images/ad_meta_feed.jpg',
+    metrics: [
+      { num: '5.2x', lbl: 'Blended ROAS' },
+      { num: '$80,000', lbl: 'Monthly Ad Spend' },
+      { num: '4.2%', lbl: 'Outbound CTR' },
+      { num: '$24.50', lbl: 'Acquisition Cost' },
     ],
-    "description": "A launch poster for Quade’s Knowledge Upscale Program 2.0, bringing the programme details and start date into one creative."
+    problem: 'This consumer tech product struggled with banner blindness and customer skepticism among cold audiences on Facebook and Instagram.',
+    strategy: 'Created a direct-response feed ad that leads with verified 5-star reviews and a clear 30-day money-back guarantee.',
+    execution: [
+      'Bold typographic hierarchy designed for easy reading in the mobile feed.',
+      'A verified-reviews badge (10,000+ reviews) placed prominently above the product image.',
+      'A clear call-to-action button sending qualified traffic straight to express checkout.',
+    ],
   },
-  "ivn_oil": {
-    "title": "IVN Coconut Oil: product film",
-    "badge": "BRAND FILM",
-    "image": "assets/video/film-ivn-coconut-oil.jpg",
-    "metrics": [
-      {
-        "num": "IVN",
-        "lbl": "Brand"
-      },
-      {
-        "num": "Film",
-        "lbl": "Format"
-      },
-      {
-        "num": "Product",
-        "lbl": "Project"
-      }
+  tiktok_unboxing: {
+    title: 'Premium Unboxing Video & Spark Ads Campaign',
+    badge: '142K ENGAGEMENTS',
+    image: 'assets/images/ad_tiktok_hook.jpg',
+    metrics: [
+      { num: '142k', lbl: 'Likes & Comments' },
+      { num: '5.8x', lbl: 'TikTok Spark ROAS' },
+      { num: '1.2M', lbl: 'Direct Video Reach' },
+      { num: '-52%', lbl: 'Cost Per Follower' },
     ],
-    "description": "A product film from the IVN Coconut Oil project. The full video is available in Reels & Brand Films.",
-    "video": "assets/video/film-ivn-coconut-oil.mp4"
+    problem: 'Entering a crowded lifestyle market required fast brand credibility and awareness without the cost of celebrity endorsements.',
+    strategy: 'Produced a tactile unboxing video with high-contrast animated subtitles and promoted it through TikTok Spark Ads.',
+    execution: [
+      'A first-person point of view helps viewers picture owning the product.',
+      'Clean unboxing audio makes the video satisfying to watch.',
+      'A pinned discount code in the comments drove purchases directly from TikTok.',
+    ],
   },
-  "quade_anniversary": {
-    "title": "Quade: one year milestone",
-    "badge": "BRAND MILESTONE",
-    "image": "assets/work/poster-quade-anniversary.jpg",
-    "metrics": [
-      {
-        "num": "Quade",
-        "lbl": "Brand"
-      },
-      {
-        "num": "Social",
-        "lbl": "Format"
-      },
-      {
-        "num": "Milestone",
-        "lbl": "Project"
-      }
+  lander_cro: {
+    title: 'Aeterna Luna: Premium Watch Landing Page',
+    badge: '+38.4% CONVERSION LIFT',
+    image: 'assets/images/ad_lander_cro.jpg',
+    metrics: [
+      { num: '+38.4%', lbl: 'Conversion Uplift' },
+      { num: '$1,430', lbl: 'Average Order Value' },
+      { num: '4.6%', lbl: 'Checkout Rate' },
+      { num: '1.4s', lbl: 'Page Load Speed' },
     ],
-    "description": "An anniversary creative marking Quade’s first year. A moment from the brand’s story, made for its social channels."
-  }
+    problem: 'Paid traffic was landing on an unoptimized Shopify product page with a 78% cart abandonment rate.',
+    strategy: 'Rebuilt the page mobile-first with trust badges, a clear warranty message and one-tap Apple Pay and Google Pay checkout.',
+    execution: [
+      'Sticky add-to-cart bar linked directly to the payment gateway.',
+      'Craftsmanship credentials above the fold and a verified customer photo gallery.',
+      'A/B tested against the original page, with a statistically significant 38.4% conversion increase.',
+    ],
+  },
 };
 
 function initCaseStudyModal() {
@@ -1386,13 +1374,11 @@ function initCaseStudyModal() {
       </h3>
 
       <div class="work-modal-image" style="height: 320px; border-radius: 18px; overflow: hidden; margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);">
-        ${data.video
-          ? `<video src="${data.video}" poster="${data.image}" controls playsinline preload="metadata" aria-label="${data.title}" style="width: 100%; height: 100%; object-fit: contain;"></video>`
-          : `<img src="${data.image}" alt="${data.title}" style="width: 100%; height: 100%; object-fit: contain;">`}
+        <img src="${data.image}" alt="${data.title}" style="width: 100%; height: 100%; object-fit: cover;">
       </div>
 
-      <!-- Project Details Strip -->
-      <div class="work-modal-metrics" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-bottom: 24px; text-align: center;">
+      <!-- Verified Metrics Strip -->
+      <div class="work-modal-metrics" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px; margin-bottom: 24px; text-align: center;">
         ${data.metrics
           .map(
             (m) => `
@@ -1405,11 +1391,35 @@ function initCaseStudyModal() {
           .join('')}
       </div>
 
-      <p style="font-size: 0.95rem; color: #475569; line-height: 1.7; margin-bottom: 24px;">${data.description}</p>
+      <!-- Problem vs Strategy Breakdown -->
+      <div class="work-modal-story" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px;">
+        <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 14px; padding: 18px;">
+          <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #dc2626; margin-bottom: 8px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> The Challenge
+          </h4>
+          <p style="font-size: 0.88rem; color: #4b5563; line-height: 1.6;">${data.problem}</p>
+        </div>
+        <div style="background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 14px; padding: 18px;">
+          <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #059669; margin-bottom: 8px;">
+            <i class="fa-solid fa-bullseye"></i> Our Approach
+          </h4>
+          <p style="font-size: 0.88rem; color: #4b5563; line-height: 1.6;">${data.strategy}</p>
+        </div>
+      </div>
+
+      <!-- Execution Points -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+        <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #0f172a; margin-bottom: 10px;">
+          Key Execution Steps
+        </h4>
+        <ul style="list-style: disc; padding-left: 20px; font-size: 0.88rem; color: #475569; line-height: 1.7;">
+          ${data.execution.map((item) => `<li>${item}</li>`).join('')}
+        </ul>
+      </div>
 
       <div style="display: flex; justify-content: flex-end;">
         <a href="#contact" onclick="closeWorkModal()" class="btn-primary-blue btn-sm">
-          <span>Discuss a similar project</span>
+          <span>Discuss a Similar Strategy</span>
           <i class="fa-solid fa-arrow-right"></i>
         </a>
       </div>
@@ -1428,7 +1438,6 @@ function initCaseStudyModal() {
   window.closeWorkModal = function () {
     const modal = document.getElementById('workModal');
     if (modal && modal.classList.contains('active')) {
-      modal.querySelectorAll('video').forEach(video => video.pause());
       modal.classList.remove('active');
       modal.inert = true;
       modal.setAttribute('aria-hidden', 'true');
@@ -1446,7 +1455,7 @@ function initCaseStudyModal() {
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeWorkModal();
       if (e.key === 'Tab' && modalBackdrop.classList.contains('active')) {
-        const focusable = modalBackdrop.querySelectorAll('button, a[href], video[controls]');
+        const focusable = modalBackdrop.querySelectorAll('button, a[href]');
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
         if (e.shiftKey && document.activeElement === first) {
