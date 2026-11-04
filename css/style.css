@@ -2742,7 +2742,7 @@ select.input-clean option { color: var(--text-heading, #0f172a); }
 .clients-track {
   display: flex;
   width: max-content;
-  animation: marqueeRoll 45s linear infinite;
+  animation: marqueeRoll 87s linear infinite;
 }
 
 .clients-row {
