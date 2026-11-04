@@ -1278,10 +1278,10 @@ const caseStudyBlueprints = {
     metrics: [
       { num: '48.2%', lbl: '3-Sec Hook Rate' },
       { num: '4.8x', lbl: 'Blended ROAS' },
-      { num: '$18.20', lbl: 'CPA Reduction (-64%)' },
+      { num: 'Reduced', lbl: 'CPA Reduction (-64%)' },
       { num: '3.8%', lbl: 'Outbound CTR' },
     ],
-    problem: 'The brand was spending $4,500 per month on generic studio ads, resulting in an unsustainable $72 CPA and an 84% viewer drop-off within the first 2 seconds.',
+    problem: 'The brand’s generic studio ads had an unsustainable acquisition cost and an 84% viewer drop-off within the first 2 seconds.',
     strategy: 'Produced a UGC-style video opening with the hook "Why 90% of ads fail in 3 seconds", using a cut every 1.4 seconds to hold viewer attention.',
     execution: [
       '0:00 - 0:03: A curiosity-led opening hook that stops the scroll.',
@@ -1291,13 +1291,13 @@ const caseStudyBlueprints = {
   },
   meta_feed: {
     title: 'Apex Pro: Social-Proof Meta Feed Ad',
-    badge: 'SCALED TO $80K/MO',
+    badge: 'CAMPAIGN SCALING',
     image: 'assets/images/ad_meta_feed.jpg',
     metrics: [
       { num: '5.2x', lbl: 'Blended ROAS' },
-      { num: '$80,000', lbl: 'Monthly Ad Spend' },
+      { num: 'Scaled', lbl: 'Campaign Spend' },
       { num: '4.2%', lbl: 'Outbound CTR' },
-      { num: '$24.50', lbl: 'Acquisition Cost' },
+      { num: 'Optimised', lbl: 'Acquisition Cost' },
     ],
     problem: 'This consumer tech product struggled with banner blindness and customer skepticism among cold audiences on Facebook and Instagram.',
     strategy: 'Created a direct-response feed ad that leads with verified 5-star reviews and a clear 30-day money-back guarantee.',
@@ -1331,7 +1331,7 @@ const caseStudyBlueprints = {
     image: 'assets/images/ad_lander_cro.jpg',
     metrics: [
       { num: '+38.4%', lbl: 'Conversion Uplift' },
-      { num: '$1,430', lbl: 'Average Order Value' },
+      { num: 'Premium', lbl: 'Order Value Segment' },
       { num: '4.6%', lbl: 'Checkout Rate' },
       { num: '1.4s', lbl: 'Page Load Speed' },
     ],
